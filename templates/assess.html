@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assessment — {{ fn }} | NIST CSF 2.0 Tool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #F0F4F8; color: #1A1A1A; }
+
+  .top-bar {
+    background: #1F3864;
+    color: #fff;
+    padding: 14px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top-bar .title { font-weight: 600; font-size: 0.95rem; }
+  .top-bar .step  { font-size: 0.85rem; opacity: 0.75; }
+
+  .progress-wrap { background: rgba(255,255,255,0.15); height: 6px; margin-top: 6px; border-radius: 3px; overflow: hidden; }
+  .progress-bar  { background: #70AD47; height: 100%; border-radius: 3px; transition: width 0.4s; }
+
+  .container { max-width: 760px; margin: 40px auto; padding: 0 24px 80px; }
+
+  .fn-header {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    border-left: 5px solid #2E5DA8;
+  }
+  .fn-header h1 { font-size: 1.5rem; color: #1F3864; margin-bottom: 6px; }
+  .fn-header p  { font-size: 0.92rem; color: #555; line-height: 1.5; }
+
+  .scale-legend {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .scale-item {
+    background: #fff;
+    border: 1px solid #DDE3EC;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    color: #555;
+  }
+  .scale-item strong { color: #1F3864; }
+
+  .question-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .question-card .q-num  { font-size: 0.78rem; color: #2E5DA8; font-weight: 600; margin-bottom: 6px; }
+  .question-card .q-text { font-size: 0.95rem; color: #222; line-height: 1.5; margin-bottom: 16px; }
+
+  .rating-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .rating-row label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+  }
+  .rating-row input[type="radio"] { display: none; }
+  .rating-btn {
+    width: 48px; height: 48px;
+    border: 2px solid #DDE3EC;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #888;
+    background: #F8FAFC;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .rating-row input[type="radio"]:checked + .rating-btn {
+    background: #1F3864;
+    border-color: #1F3864;
+    color: #fff;
+    transform: scale(1.08);
+  }
+  .rating-label { font-size: 0.68rem; color: #888; text-align: center; max-width: 52px; }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+  }
+  .btn {
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-primary { background: #1F3864; color: #fff; }
+  .btn-back    { background: #fff; color: #1F3864; border: 1.5px solid #1F3864; text-decoration: none; }
+  .btn-back:hover { background: #EEF2F7; }
+
+  .fn-icons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .fn-dot {
+    width: 28px; height: 6px; border-radius: 3px; background: #DDE3EC;
+  }
+  .fn-dot.done { background: #70AD47; }
+  .fn-dot.active { background: #2E5DA8; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div>
+    <div class="title">NIST CSF 2.0 Risk Assessment</div>
+    <div class="step">Function {{ step + 1 }} of {{ total }} — {{ fn }}</div>
+    <div class="progress-wrap" style="width:200px;margin-top:6px">
+      <div class="progress-bar" style="width:{{ progress }}%"></div>
+    </div>
+  </div>
+  <div style="font-size:0.85rem;opacity:0.7">{{ progress }}% complete</div>
+</div>
+
+<div class="container">
+
+  <div class="fn-header">
+    <h1>
+      {% if fn == "Govern"   %}🏛️{% endif %}
+      {% if fn == "Identify" %}🔍{% endif %}
+      {% if fn == "Protect"  %}🛡️{% endif %}
+      {% if fn == "Detect"   %}📡{% endif %}
+      {% if fn == "Respond"  %}🚨{% endif %}
+      {% if fn == "Recover"  %}🔄{% endif %}
+      {{ fn }}
+    </h1>
+    <p>
+      {% if fn == "Govern"   %}How well does your organisation govern its cybersecurity risk — policies, accountability, and strategy?{% endif %}
+      {% if fn == "Identify" %}How well does your organisation understand its assets, data, and the risks it faces?{% endif %}
+      {% if fn == "Protect"  %}What safeguards does your organisation have in place to prevent cybersecurity incidents?{% endif %}
+      {% if fn == "Detect"   %}How well can your organisation spot unusual or suspicious activity on its systems?{% endif %}
+      {% if fn == "Respond"  %}How prepared is your organisation to respond to a cybersecurity incident?{% endif %}
+      {% if fn == "Recover"  %}How well prepared is your organisation to recover after a cybersecurity incident?{% endif %}
+    </p>
+    <div class="fn-icons">
+      {% for i in range(total) %}
+        <div class="fn-dot {% if i < step %}done{% elif i == step %}active{% endif %}"></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="scale-legend">
+    <span class="scale-item"><strong>1</strong> — Not implemented</span>
+    <span class="scale-item"><strong>2</strong> — Partially implemented</span>
+    <span class="scale-item"><strong>3</strong> — Implemented but not reviewed</span>
+    <span class="scale-item"><strong>4</strong> — Implemented and reviewed</span>
+    <span class="scale-item"><strong>5</strong> — Fully implemented, reviewed &amp; improved</span>
+  </div>
+
+  <form method="POST" action="/assess?step={{ step }}">
+    {% for i, q in enumerate(questions) %}
+    <div class="question-card">
+      <div class="q-num">Question {{ step * 5 + i + 1 }} of 30</div>
+      <div class="q-text">{{ q }}</div>
+      <div class="rating-row">
+        {% for v in [1,2,3,4,5] %}
+        <label>
+          <input type="radio" name="q{{ i }}" value="{{ v }}"
+            {% if v == 3 %}checked{% endif %} required>
+          <span class="rating-btn">{{ v }}</span>
+          <span class="rating-label">
+            {% if v == 1 %}Not implemented{% endif %}
+            {% if v == 2 %}Partial{% endif %}
+            {% if v == 3 %}In place{% endif %}
+            {% if v == 4 %}Reviewed{% endif %}
+            {% if v == 5 %}Optimised{% endif %}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="nav-row">
+      {% if step > 0 %}
+        <a href="/assess?step={{ prev_step }}" class="btn btn-back">← Back</a>
+      {% else %}
+        <a href="/" class="btn btn-back">← Home</a>
+      {% endif %}
+      <button type="submit" class="btn btn-primary">
+        {% if step + 1 == total %}View Results →{% else %}Next: {{ ["Govern","Identify","Protect","Detect","Respond","Recover"][step+1] if step+1 < total else "" }} →{% endif %}
+      </button>
+    </div>
+  </form>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risk Assessment Results | NIST CSF 2.0 Tool</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #F0F4F8; color: #1A1A1A; }
+
+  .top-bar {
+    background: #1F3864;
+    color: #fff;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top-bar .title { font-weight: 600; font-size: 1rem; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* Overall score banner */
+  .overall-banner {
+    border-radius: 12px;
+    padding: 30px 36px;
+    margin-bottom: 32px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .overall-banner.high   { background: linear-gradient(135deg,#8B0000,#C00000); }
+  .overall-banner.medium { background: linear-gradient(135deg,#B35900,#ED7D31); }
+  .overall-banner.low    { background: linear-gradient(135deg,#2D6A1F,#70AD47); }
+
+  .overall-banner .score-block h2 { font-size: 1.1rem; opacity: 0.85; margin-bottom: 4px; }
+  .overall-banner .score-block .big { font-size: 3rem; font-weight: 700; line-height: 1; }
+  .overall-banner .score-block .sub { font-size: 0.9rem; opacity: 0.8; margin-top: 4px; }
+
+  .overall-banner .level-block {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 10px;
+    padding: 18px 28px;
+    text-align: center;
+  }
+  .overall-banner .level-block .lbl { font-size: 0.8rem; opacity: 0.8; margin-bottom: 4px; }
+  .overall-banner .level-block .val { font-size: 1.5rem; font-weight: 700; }
+
+  .export-row { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; align-items: center; }
+  .export-row label { font-size: 0.88rem; color: #555; }
+  .export-row input[type="text"] {
+    border: 1.5px solid #DDE3EC;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    width: 220px;
+  }
+  .btn-export {
+    background: #1F3864;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.15s;
+  }
+  .btn-export:hover { opacity: 0.85; }
+  .btn-restart {
+    background: #fff;
+    color: #1F3864;
+    border: 1.5px solid #1F3864;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  /* Function cards */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1F3864;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #DDE3EC;
+  }
+
+  .fn-card {
+    background: #fff;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    overflow: hidden;
+  }
+  .fn-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    cursor: pointer;
+    gap: 12px;
+  }
+  .fn-card-header:hover { background: #F8FAFC; }
+
+  .fn-name { font-size: 1rem; font-weight: 600; color: #1F3864; }
+  .fn-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  .badge-risk {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .badge-risk.High   { background: #C00000; }
+  .badge-risk.Medium { background: #ED7D31; }
+  .badge-risk.Low    { background: #70AD47; }
+
+  .badge-mat {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: #EEF2F7;
+    color: #1F3864;
+  }
+
+  .score-bar-wrap {
+    background: #F0F4F8;
+    border-radius: 4px;
+    height: 8px;
+    width: 120px;
+    overflow: hidden;
+  }
+  .score-bar {
+    height: 100%;
+    border-radius: 4px;
+  }
+  .bar-High   { background: #C00000; }
+  .bar-Medium { background: #ED7D31; }
+  .bar-Low    { background: #70AD47; }
+
+  .score-txt { font-size: 0.85rem; font-weight: 600; color: #555; min-width: 52px; }
+
+  .fn-body { padding: 0 22px 22px; display: none; border-top: 1px solid #EEF2F7; }
+  .fn-body.open { display: block; }
+
+  .rec-list { margin-top: 16px; }
+  .rec-list h4 { font-size: 0.85rem; font-weight: 600; color: #555; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .rec-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .rec-num {
+    background: #1F3864;
+    color: #fff;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .rec-text { font-size: 0.88rem; color: #333; line-height: 1.55; }
+
+  .toggle-icon { font-size: 1rem; color: #999; transition: transform 0.2s; }
+  .fn-card-header.expanded .toggle-icon { transform: rotate(180deg); }
+
+  /* Radar/bar mini chart */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .chart-box {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  }
+  .chart-box h3 { font-size: 0.9rem; font-weight: 600; color: #1F3864; margin-bottom: 14px; }
+  .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .bar-fn-name { font-size: 0.78rem; color: #555; min-width: 64px; }
+  .bar-outer { flex: 1; background: #F0F4F8; border-radius: 4px; height: 10px; overflow: hidden; }
+  .bar-inner { height: 100%; border-radius: 4px; transition: width 0.6s; }
+  .bar-score-txt { font-size: 0.75rem; color: #888; min-width: 34px; text-align: right; }
+
+  .mat-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .mat-fn { font-size: 0.78rem; color: #555; min-width: 64px; }
+  .mat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .mat-lbl { font-size: 0.78rem; color: #333; }
+
+  footer {
+    background: #1F3864;
+    color: rgba(255,255,255,0.55);
+    text-align: center;
+    padding: 18px;
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="title">NIST CSF 2.0 Risk Assessment — Results</span>
+  <a href="/" style="color:rgba(255,255,255,0.7);font-size:0.85rem;text-decoration:none;">← Home</a>
+</div>
+
+<div class="container">
+
+  <!-- Overall banner -->
+  {% set lvl = data.overall_level %}
+  <div class="overall-banner {{ lvl | lower }}">
+    <div class="score-block">
+      <h2>Overall Risk Score</h2>
+      <div class="big">{{ data.overall_score }}</div>
+      <div class="sub">out of 25 — weighted across all 6 functions</div>
+    </div>
+    <div class="level-block">
+      <div class="lbl">Overall Risk Level</div>
+      <div class="val">{{ lvl }}</div>
+    </div>
+  </div>
+
+  <!-- Export row -->
+  <div class="export-row">
+    <label for="orgname">Organisation name for export:</label>
+    <input type="text" id="orgname" value="My Organisation" placeholder="e.g. TechServ Ltd">
+    <a href="#" class="btn-export" id="export-btn">⬇ Download Excel / Power BI</a>
+    <a href="/" class="btn-restart">↺ New Assessment</a>
+  </div>
+
+  <!-- Mini charts -->
+  <div class="chart-grid">
+    <div class="chart-box">
+      <h3>Risk Scores by Function</h3>
+      {% for fn in data.sorted_functions %}
+      {% set d = data.functions[fn] %}
+      <div class="bar-row">
+        <span class="bar-fn-name">{{ fn }}</span>
+        <div class="bar-outer">
+          <div class="bar-inner bar-{{ d.risk_level }}"
+               style="width:{{ (d.risk_score / 25 * 100)|round }}%"></div>
+        </div>
+        <span class="bar-score-txt">{{ d.risk_score }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="chart-box">
+      <h3>Maturity Levels by Function</h3>
+      {% for fn in data.sorted_functions %}
+      {% set d = data.functions[fn] %}
+      <div class="mat-row">
+        <span class="mat-fn">{{ fn }}</span>
+        <div class="mat-dot" style="background:
+          {% if 'Adaptive' in d.maturity %}#70AD47
+          {% elif 'Repeatable' in d.maturity %}#2E5DA8
+          {% elif 'Risk-Informed' in d.maturity %}#ED7D31
+          {% else %}#C00000{% endif %}"></div>
+        <span class="mat-lbl">{{ d.maturity }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Function detail cards -->
+  <div class="section-title">Detailed Results by Function</div>
+
+  {% for fn in data.sorted_functions %}
+  {% set d = data.functions[fn] %}
+  <div class="fn-card">
+    <div class="fn-card-header" onclick="toggle(this)">
+      <div>
+        <div class="fn-name">
+          {% if fn == "Govern"   %}🏛️{% endif %}
+          {% if fn == "Identify" %}🔍{% endif %}
+          {% if fn == "Protect"  %}🛡️{% endif %}
+          {% if fn == "Detect"   %}📡{% endif %}
+          {% if fn == "Respond"  %}🚨{% endif %}
+          {% if fn == "Recover"  %}🔄{% endif %}
+          {{ fn }}
+        </div>
+      </div>
+      <div class="fn-meta">
+        <div>
+          <div class="score-bar-wrap">
+            <div class="score-bar bar-{{ d.risk_level }}"
+                 style="width:{{ (d.risk_score/25*100)|round }}%"></div>
+          </div>
+        </div>
+        <span class="score-txt">{{ d.risk_score }} / 25</span>
+        <span class="badge-risk {{ d.risk_level }}">{{ d.risk_level }}</span>
+        <span class="badge-mat">{{ d.maturity }}</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+    </div>
+    <div class="fn-body">
+      <div class="rec-list">
+        <h4>Top Recommendations</h4>
+        {% for rec in d.recommendations %}
+        <div class="rec-item">
+          <div class="rec-num">{{ loop.index }}</div>
+          <div class="rec-text">{{ rec }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+
+<footer>
+  CO7047 Research Project · University of Chester · NIST CSF 2.0 Risk Assessment Tool<br>
+  Nauman Salimbhai Shaikh | MSc Cybersecurity | Supervisor: Dr Bismark Asare
+</footer>
+
+<script>
+function toggle(header) {
+  header.classList.toggle("expanded");
+  const body = header.nextElementSibling;
+  body.classList.toggle("open");
+}
+
+// Export button wires org name into URL
+document.getElementById("export-btn").addEventListener("click", function(e) {
+  e.preventDefault();
+  const org = encodeURIComponent(document.getElementById("orgname").value || "Organisation");
+  window.location.href = "/export?org=" + org;
+});
+
+// Auto-open highest risk function
+document.querySelector(".fn-card-header").click();
+</script>
+</body>
+</html>
